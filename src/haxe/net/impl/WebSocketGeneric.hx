@@ -40,7 +40,7 @@ class WebSocketGeneric extends WebSocket {
       path = reg.matched(5);
       if (path == null) path = '/';
 
-      socket = Socket2.create(host, port, secure, debug);
+      socket = Socket2.create(host, port, secure);
       state = State.Handshake;
       socket.onconnect = function() {
         #if debug
@@ -324,7 +324,9 @@ class WebSocketGeneric extends WebSocket {
         Base64.encode(Sha1.make(Bytes.ofString(key + '258EAFA5-E914-47DA-95CA-C5AB0DC85B11')));
       }
 
-      if (debug) trace('Websocket succefully connected');
+      #if debug
+        trace('Websocket succefully connected');
+      #end
 
       return [
         'HTTP/1.1 101 Switching Protocols',
