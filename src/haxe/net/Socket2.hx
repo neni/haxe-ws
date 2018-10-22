@@ -8,10 +8,9 @@ class Socket2 {
     private var port:Int;
     private var debug:Bool;
 
-    private function new(host:String, port:Int, debug:Bool = false) {
+    private function new(host:String, port:Int) {
         this.host = host;
         this.port = port;
-        this.debug = debug;
     }
 
     public function close() {
@@ -35,19 +34,19 @@ class Socket2 {
     public function send(data:Bytes) {
     }
 
-    dynamic static public function create(host:String, port:Int, secure:Bool = false, debug:Bool = false):Socket2 {
+    dynamic static public function create(host:String, port:Int, secure:Bool = false):Socket2 {
         #if flash
-          return new haxe.net.impl.SocketFlash(host, port, secure, debug);
+          return new haxe.net.impl.SocketFlash(host, port, secure);
         #elseif sys
-          return haxe.net.impl.SocketSys.create(host, port, secure, debug);
+          return haxe.net.impl.SocketSys.create(host, port, secure);
         #else
           #error "Unsupported platform"
         #end
     }
 
     #if sys
-    static public function createFromExistingSocket(socket:sys.net.Socket, debug:Bool = false) {
-      return haxe.net.impl.SocketSys.createFromExistingSocket(socket, debug);
+    static public function createFromExistingSocket(socket:sys.net.Socket) {
+      return haxe.net.impl.SocketSys.createFromExistingSocket(socket);
     }
     #end
 }

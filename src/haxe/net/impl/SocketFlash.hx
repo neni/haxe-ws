@@ -12,13 +12,15 @@ import flash.net.Socket;
 
 class SocketFlash extends Socket2 {
     private var impl: Socket;
+    private var debug: Bool;
 
     public function new(host:String, port:Int, secure:Bool, debug:Bool = false) {
         super(host, port, debug);
 
-        //debug = true;
-
-        this.debug = debug;
+        // TODO: clean and remove debug var
+        #if debug
+          this.debug = true;
+        #end
 
         this.impl = secure ? new SecureSocket() : new Socket();
         this.impl.endian = Endian.BIG_ENDIAN;

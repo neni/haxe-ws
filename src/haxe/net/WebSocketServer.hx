@@ -7,17 +7,16 @@ import sys.ssl.Socket;
 import sys.ssl.Certificate;
 import sys.ssl.Key;
 
+
 class WebSocketServer {
 
-  var _isDebug:Bool;
   var _isSecure:Bool;
   var _listenSocket:sys.net.Socket;
   #if neko
-    var keepalive:Dynamic;
+  var keepalive:Dynamic;
   #end
 
-  function new(host:String, port:Int, maxConnections:Int, isSecure:Dynamic = null, isDebug:Bool = false) {
-    _isDebug = isDebug;
+  function new(host:String, port:Int, maxConnections:Int, isSecure:Dynamic = null) {
     _isSecure = isSecure != null;
     _listenSocket = _isSecure ? new sys.ssl.Socket() : new sys.net.Socket() ;
 
@@ -37,8 +36,8 @@ class WebSocketServer {
     #end
   }
 
-  public static function create(host:String, port:Int, maxConnections:Int, isSecure:Bool, isDebug:Bool) {
-    return new WebSocketServer(host, port, maxConnections, isSecure, isDebug);
+  public static function create(host:String, port:Int, maxConnections:Int, isSecure:Bool) {
+    return new WebSocketServer(host, port, maxConnections, isSecure);
   }
 
   public function accept():WebSocket {
@@ -49,7 +48,7 @@ class WebSocketServer {
       }else{
         socket = _listenSocket.accept();
       }
-      return WebSocket.createFromAcceptedSocket(Socket2.createFromExistingSocket(socket, _isDebug), '', _isDebug);
+      return WebSocket.createFromAcceptedSocket(Socket2.createFromExistingSocket(socket, _isDebug), '');
     }catch (e:Dynamic) {
       return null;
     }

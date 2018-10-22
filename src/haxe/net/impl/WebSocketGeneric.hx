@@ -5,7 +5,10 @@ import haxe.crypto.Sha1;
 import haxe.io.Bytes;
 import haxe.net.Socket2;
 import haxe.net.WebSocket.ReadyState;
+
+
 class WebSocketGeneric extends WebSocket {
+
     private var socket:Socket2;
     private var origin = "http://127.0.0.1/";
     private var scheme = "ws";
@@ -16,15 +19,13 @@ class WebSocketGeneric extends WebSocket {
     private var secure = false;
     private var protocols = [];
     private var state = State.Handshake;
-    public var debug:Bool = true;
     private var needHandleData:Bool = false;
 
-    function initialize(uri:String, protocols:Array<String> = null, origin:String = null, key:String = "", debug:Bool = false) {
+    function initialize(uri:String, protocols:Array<String> = null, origin:String = null, key:String = "") {
       if (origin == null) origin = "http://127.0.0.1/";
       this.protocols = protocols;
       this.origin = origin;
       this.key = (key!="" && key!=null)? key : this.getRandomKey();
-      this.debug = debug;
       var reg = ~/^(\w+?):\/\/([\w\.-]+)(:(\d+))?(\/.*)?$/;
       //var reg = ~/^(\w+?):/;
       if (!reg.match(uri)) throw 'Uri not matching websocket uri "${uri}"';
@@ -38,12 +39,13 @@ class WebSocketGeneric extends WebSocket {
       port = (reg.matched(4) != null) ? Std.parseInt(reg.matched(4)) : (secure ? 443 : 80);
       path = reg.matched(5);
       if (path == null) path = '/';
-      //trace('$scheme, $host, $port, $path');
 
       socket = Socket2.create(host, port, secure, debug);
       state = State.Handshake;
       socket.onconnect = function() {
-        _debug('socket connected');
+        #if debug
+          _debug('socket connected');
+        #end
         writeBytes(prepareClientHandshake(path, host, port, this.key, origin));
         //this.onopen();
       };
@@ -52,14 +54,19 @@ class WebSocketGeneric extends WebSocket {
       return this;
     }
 
+
     function commonInitialize() {
       socketData = new BytesRW();
       socket.onclose = function() {
-        _debug('socket closed');
+        #if debug
+          _debug('socket closed');
+        #end
         setClosed();
       };
       socket.onerror = function() {
-        _debug('ioerror: ');
+        #if debug
+          _debug('ioerror: ');
+        #end
         this.onerror('error');
       };
       socket.ondata = function(data:Bytes) {
@@ -68,20 +75,22 @@ class WebSocketGeneric extends WebSocket {
       };
     }
 
-    public static function create(uri:String, protocols:Array<String> = null, origin:String = null, key:String = "", debug:Bool) {
-      return new WebSocketGeneric().initialize(uri, protocols, origin, key, debug);
+
+    public static function create(uri:String, protocols:Array<String> = null, origin:String = null, key:String = "") {
+      return new WebSocketGeneric().initialize(uri, protocols, origin, key);
     }
 
-    public static function createFromAcceptedSocket(socket:Socket2, alreadyRecieved:String = '', debug:Bool) {
+
+    public static function createFromAcceptedSocket(socket:Socket2, alreadyRecieved:String = '') {
       var websocket = new WebSocketGeneric();
       websocket.socket = socket;
-      websocket.debug = debug;
       websocket.commonInitialize();
       websocket.state = State.ServerHandshake;
       websocket.httpHeader = alreadyRecieved;
       websocket.needHandleData = true;
       return websocket;
     }
+
 
     override public function process() {
       socket.process();
@@ -90,10 +99,13 @@ class WebSocketGeneric extends WebSocket {
       }
     }
 
+
+    #if debug
     private function _debug(msg:String, ?p:PosInfos):Void {
-      if (!debug) return;
       haxe.Log.trace(msg, p);
     }
+    #end
+
 
     private function writeBytes(data:Bytes) {
       //if (socket == null || !socket.connected) return;
@@ -104,6 +116,7 @@ class WebSocketGeneric extends WebSocket {
         onerror(Std.string(e));
       }
     }
+
 
     private var socketData:BytesRW;
     private var isFinal:Bool;
@@ -116,6 +129,7 @@ class WebSocketGeneric extends WebSocket {
     private var httpHeader:String = "";
     private var lastPong:Date = null;
     private var payload:BytesRW = null;
+
 
     private function handleData() {
       needHandleData = false;
@@ -138,13 +152,17 @@ class WebSocketGeneric extends WebSocket {
               }
               try {
                 var handshake = prepareServerHandshake();
-                _debug('Sending responce: $handshake');
+                #if debug
+                  _debug('Sending responce: $handshake');
+                #end
                 writeBytes(Bytes.ofString(handshake));
                 state = State.Head;
                 this.onopen();
               }catch (e:String) {
                 writeBytes(Bytes.ofString(prepareHttp400(e)));
-                _debug('Error in http request: $e');
+                #if debug
+                  _debug('Error in http request: $e');
+                #end
                 socket.close();
                 state = State.Closed;
               }
@@ -187,7 +205,9 @@ class WebSocketGeneric extends WebSocket {
               if(state != State.Closed) state = State.Head;
               switch (opcode) {
                 case Opcode.Binary | Opcode.Text | Opcode.Continuation:
-                  _debug("Received message, " + "Type: " + opcode);
+                  #if debug
+                    _debug("Received message, " + "Type: " + opcode);
+                  #end
                   if (isFinal) {
                     var messageData = payload.readAllAvailableBytes();
                     var unmakedMessageData = (isMasked) ? applyMask(messageData, mask) : messageData;
@@ -199,15 +219,21 @@ class WebSocketGeneric extends WebSocket {
                     payload = null;
                   }
                 case Opcode.Ping:
-                  _debug("Received Ping");
+                  #if debug
+                    _debug("Received Ping");
+                  #end
                   //onPing.dispatch(null);
                   sendFrame(payload.readAllAvailableBytes(), Opcode.Pong);
                 case Opcode.Pong:
-                  _debug("Received Pong");
+                  #if debug
+                    _debug("Received Pong");
+                  #end
                   //onPong.dispatch(null);
                   lastPong = Date.now();
                 case Opcode.Close:
-                  _debug("Socket Closed");
+                  #if debug
+                    _debug("Socket Closed");
+                  #end
                   setClosed();
                   try {
                       socket.close();
@@ -250,7 +276,9 @@ class WebSocketGeneric extends WebSocket {
     }
 
     private function prepareServerHandshake() {
-      if (debug) trace('HTTP request: \n$httpHeader');
+      #if debug
+        trace('HTTP request: \n$httpHeader');
+      #end
 
       var requestLines = httpHeader.split('\r\n');
       requestLines.pop();
