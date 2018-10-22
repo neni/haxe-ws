@@ -32,13 +32,13 @@ class WebSocketJs extends WebSocket {
                 //js.html.ArrayBuffer
                 trace('Unhandled websocket onmessage ' + m);
             } else if (Std.is(m, js.html.Blob)) {
-				var arrayBuffer : js.html.ArrayBuffer;
-				var fileReader = new js.html.FileReader();
-				fileReader.onload = function() {
-					arrayBuffer = fileReader.result;
-					this.onmessageBytes(Bytes.ofData(arrayBuffer));
-				}
-				fileReader.readAsArrayBuffer(cast (m, js.html.Blob));
+        var arrayBuffer : js.html.ArrayBuffer;
+        var fileReader = new js.html.FileReader();
+        fileReader.onload = function() {
+          arrayBuffer = fileReader.result;
+          this.onmessageBytes(Bytes.ofData(arrayBuffer));
+        }
+        fileReader.readAsArrayBuffer(cast (m, js.html.Blob));
             } else {
                 //ArrayBuffer
                 trace('Unhandled websocket onmessage ' + m);
@@ -51,22 +51,22 @@ class WebSocketJs extends WebSocket {
     }
 
     override public function sendBytes(message:Bytes) {
-//	Separate message data, because 'message.getData().length' not equal 'message.length'
-	message = message.sub(0, message.length);
+//  Separate message data, because 'message.getData().length' not equal 'message.length'
+  message = message.sub(0, message.length);
         this.impl.send(message.getData());
     }
-	
-	override public function close() {
-		this.impl.close();
-	}
-	
-	override function get_readyState():ReadyState {
-		return switch(this.impl.readyState) {
-    		case js.html.WebSocket.OPEN: ReadyState.Open;
-			case js.html.WebSocket.CLOSED: ReadyState.Closed;
-			case js.html.WebSocket.CLOSING: ReadyState.Closing;
-			case js.html.WebSocket.CONNECTING: ReadyState.Connecting;
-			default: throw 'Unexpected websocket state';
-		}
-	}
+
+  override public function close() {
+    this.impl.close();
+  }
+
+  override function get_readyState():ReadyState {
+    return switch(this.impl.readyState) {
+        case js.html.WebSocket.OPEN: ReadyState.Open;
+      case js.html.WebSocket.CLOSED: ReadyState.Closed;
+      case js.html.WebSocket.CLOSING: ReadyState.Closing;
+      case js.html.WebSocket.CONNECTING: ReadyState.Connecting;
+      default: throw 'Unexpected websocket state';
+    }
+  }
 }

@@ -1,0 +1,7 @@
+
+Changes
+
+First commit (for use with a go server - github.com/gobwas/ws)
+- add default "Sec-Websocket-Key" with 24 chars lenth
+- set isMasked to true
+- start reformat code

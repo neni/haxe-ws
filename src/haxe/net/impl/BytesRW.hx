@@ -8,7 +8,6 @@ class BytesRW {
     private var chunks:Array<Bytes> = [];
 
     public function new() {
-
     }
 
     public function writeByte(v:Int) {
